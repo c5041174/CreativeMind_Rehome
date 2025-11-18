@@ -1,0 +1,92 @@
+{% extends 'base.html' %} {% block content %}
+<h3>Admin Panel</h3>
+
+<h5 class="mt-3">Users</h5>
+<table class="table table-sm">
+  <thead>
+    <tr>
+      <th>ID</th>
+      <th>Name</th>
+      <th>Email</th>
+      <th>Admin</th>
+      <th>Joined</th>
+    </tr>
+  </thead>
+  <tbody>
+    {% for u in users %}
+    <tr>
+      <td>{{ u['id'] }}</td>
+      <td>{{ u['name'] }}</td>
+      <td>{{ u['email'] }}</td>
+      <td>{{ u['is_admin'] }}</td>
+      <td>{{ u['created_at'] if u.get('created_at') else '' }}</td>
+    </tr>
+    {% endfor %}
+  </tbody>
+</table>
+
+<h5 class="mt-4">Items</h5>
+<table class="table table-sm">
+  <thead>
+    <tr>
+      <th>ID</th>
+      <th>Title</th>
+      <th>Owner</th>
+      <th>Status</th>
+      <th>Actions</th>
+    </tr>
+  </thead>
+  <tbody>
+    {% for it in items %}
+    <tr>
+      <td>{{ it['id'] }}</td>
+      <td>{{ it['title'] }}</td>
+      <td>{{ it['owner_name'] }}</td>
+      <td>{{ it['status'] }}</td>
+      <td>
+        <a
+          class="btn btn-danger btn-sm"
+          href="{{ url_for('admin_delete_item', item_id=it['id']) }}"
+          >Delete</a
+        >
+      </td>
+    </tr>
+    {% endfor %}
+  </tbody>
+</table>
+
+<h5 class="mt-4">Requests</h5>
+<table class="table table-sm">
+  <thead>
+    <tr>
+      <th>ID</th>
+      <th>Item</th>
+      <th>Requester</th>
+      <th>Status</th>
+      <th>Actions</th>
+    </tr>
+  </thead>
+  <tbody>
+    {% for r in requests %}
+    <tr>
+      <td>{{ r['id'] }}</td>
+      <td>{{ r['item_title'] }}</td>
+      <td>{{ r['requester_name'] }}</td>
+      <td>{{ r['status'] }}</td>
+      <td>
+        <a
+          class="btn btn-success btn-sm"
+          href="{{ url_for('admin_update_request', req_id=r['id'], action='approved') }}"
+          >Approve</a
+        >
+        <a
+          class="btn btn-warning btn-sm"
+          href="{{ url_for('admin_update_request', req_id=r['id'], action='rejected') }}"
+          >Reject</a
+        >
+      </td>
+    </tr>
+    {% endfor %}
+  </tbody>
+</table>
+{% endblock %}

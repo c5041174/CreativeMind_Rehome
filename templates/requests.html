@@ -1,0 +1,23 @@
+{% extends 'base.html' %} {% block content %}
+<h3>Your Requests</h3>
+
+{% if requests %}
+<div class="list-group">
+  {% for r in requests %}
+  <div class="list-group-item">
+    <div class="d-flex justify-content-between">
+      <div>
+        <strong>{{ r['item_title'] }}</strong><br />
+        <small class="text-muted">Requested on {{ r['created_at'] }}</small>
+        <p class="mb-1">{{ r['message'] }}</p>
+      </div>
+      <div class="text-end">
+        <span class="badge bg-secondary">{{ r['status'] }}</span>
+      </div>
+    </div>
+  </div>
+  {% endfor %}
+</div>
+{% else %}
+<p>You have no requests yet.</p>
+{% endif %} {% endblock %}

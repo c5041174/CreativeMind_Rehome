@@ -1,0 +1,21 @@
+{% extends 'base.html' %} {% block content %}
+<div class="row justify-content-center">
+  <div class="col-md-5">
+    <h3>Sign in</h3>
+    <form method="post" novalidate>
+      <div class="mb-2">
+        <label class="form-label">Email</label>
+        <input class="form-control" name="email" type="email" required />
+      </div>
+      <div class="mb-2">
+        <label class="form-label">Password</label>
+        <input class="form-control" name="password" type="password" required />
+      </div>
+      <button class="btn btn-success">Login</button>
+      <a class="btn btn-link" href="{{ url_for('register') }}"
+        >Create account</a
+      >
+    </form>
+  </div>
+</div>
+{% endblock %}

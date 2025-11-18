@@ -1,0 +1,47 @@
+{% extends 'base.html' %} {% block content %}
+<div class="row">
+  <div class="col-md-6">
+    {% if item['image_path'] %}
+    <img
+      src="{{ url_for('uploaded_file', filename=item['image_path']) }}"
+      class="img-fluid rounded"
+    />
+    {% else %}
+    <div class="bg-light p-5 text-center rounded">No image</div>
+    {% endif %}
+  </div>
+
+  <div class="col-md-6">
+    <h3>{{ item['title'] }}</h3>
+    <p class="text-muted">
+      Category: {{ item['category'] or '—' }} • Condition: {{ item['condition']
+      or '—' }}
+    </p>
+    <p>{{ item['description'] }}</p>
+
+    <p class="small text-muted">
+      Owner: {{ item['owner_name'] }} — contact: {{ item['owner_email'] }}
+    </p>
+
+    {% if session.get('user_id') and session.get('user_id') != item['user_id']
+    %}
+    <form
+      method="post"
+      action="{{ url_for('request_item', item_id=item['id']) }}"
+    >
+      <div class="mb-2">
+        <label class="form-label">Message to owner (optional)</label>
+        <textarea class="form-control" name="message" rows="3"></textarea>
+      </div>
+      <button class="btn btn-primary">Request this item</button>
+    </form>
+    {% elif not session.get('user_id') %}
+    <p>
+      Please <a href="{{ url_for('login') }}">login</a> to request this item.
+    </p>
+    {% else %}
+    <p class="text-muted">This is your listing.</p>
+    {% endif %}
+  </div>
+</div>
+{% endblock %}

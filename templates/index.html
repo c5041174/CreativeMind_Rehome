@@ -1,0 +1,62 @@
+{% extends 'base.html' %} {% block content %}
+<div class="d-flex justify-content-between align-items-center mb-3">
+  <div>
+    <h2 class="mb-0">Available Items</h2>
+    <small class="text-muted">Find items donated by your community</small>
+  </div>
+  <div>
+    <a class="btn btn-outline-success me-2" href="{{ url_for('index') }}"
+      >Refresh</a
+    >
+    <a class="btn btn-success" href="{{ url_for('add_item') }}">Give an item</a>
+  </div>
+</div>
+
+<div class="row">
+  {% if items %} {% for item in items %}
+  <div class="col-md-4 mb-4">
+    <div class="card h-100">
+      {% if item['image_path'] %}
+      <img
+        src="{{ url_for('uploaded_file', filename=item['image_path']) }}"
+        class="card-img-top"
+        style="height: 220px; object-fit: cover"
+      />
+      {% else %}
+      <div
+        class="card-img-top d-flex align-items-center justify-content-center bg-light"
+        style="height: 220px"
+      >
+        No image
+      </div>
+      {% endif %}
+      <div class="card-body d-flex flex-column">
+        <h5 class="card-title">{{ item['title'] }}</h5>
+        <p class="card-text text-truncate">{{ item['description'] or '' }}</p>
+        <p class="mt-auto mb-1 small text-muted">
+          Owner: {{ item['owner_name'] }}
+        </p>
+        <div class="d-flex gap-2">
+          <a
+            href="{{ url_for('item_detail', item_id=item['id']) }}"
+            class="btn btn-outline-success btn-sm"
+            >View</a
+          >
+          {% if session.get('user_id') and session.get('user_id') ==
+          item['user_id'] %}
+          <span class="badge bg-secondary align-self-center">Your listing</span>
+          {% endif %}
+        </div>
+      </div>
+    </div>
+  </div>
+  {% endfor %} {% else %}
+  <div class="col-12">
+    <div class="alert alert-info">
+      No items available right now. Be the first to
+      <a href="{{ url_for('add_item') }}">give an item</a>!
+    </div>
+  </div>
+  {% endif %}
+</div>
+{% endblock %}
