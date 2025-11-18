@@ -120,33 +120,41 @@ def index():
 @app.route("/register/", methods=("GET", "POST"))
 def register():
     if request.method == "POST":
+        conn = get_db()
+        error = None
         name = request.form.get("name", "").strip()
         email = request.form.get("email", "").strip().lower()
         password = request.form.get("password", "")
         confirm_password = request.form.get("ConfirmPassword","")
         
+        user = conn.execute("SELECT * FROM users WHERE email = ?", (email,)).fetchone()
         
-
         if not name or not email or not password or not confirm_password:
-            flash("Please fill in all required fields.", "danger")
+            error = "Please fill in all required fields."
+        elif password != confirm_password:
+            error = 'Passwords do not match!'
+        elif user :
+            error = f"Email {email} already exits"
+        if error is None :
+            
+            hashed = generate_password_hash(password)
+
+            try:
+                conn.execute(
+                    "INSERT INTO users (name, email, password) VALUES (?, ?, ?)",
+                    (name, email, hashed)
+                )
+                conn.commit()
+                flash(category='success', message=f"Welcome {name}")
+                return redirect(url_for("login"))
+            except sqlite3.IntegrityError:
+                flash("Email already registered. Try logging in.", "danger")
+            finally:
+                conn.close()
+        else:
+            flash(category='danger', message=error)
             return redirect(url_for("register"))
-
-        hashed = generate_password_hash(password)
-
-        conn = get_db()
-        try:
-            conn.execute(
-                "INSERT INTO users (name, email, password) VALUES (?, ?, ?)",
-                (name, email, hashed)
-            )
-            conn.commit()
-            flash("Account created. Please log in.", "success")
-            return redirect(url_for("login"))
-        except sqlite3.IntegrityError:
-            flash("Email already registered. Try logging in.", "danger")
-        finally:
-            conn.close()
-
+            
     return render_template("register.html")
 
 

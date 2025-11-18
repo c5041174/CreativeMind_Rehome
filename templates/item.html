@@ -1,4 +1,4 @@
-{% block content %}
+{% extends "base.html" %} {% block content %}
 <div class="row">
   <div class="col-md-6">
     {% if item['image_path'] %}
@@ -29,6 +29,7 @@
       method="post"
       action="{{ url_for('request_item', item_id=item['id']) }}"
     >
+      <input type="hidden" name="csrf_token" value="{{ csrf_token }}" />
       <div class="mb-2">
         <label class="form-label">Message to owner (optional)</label>
         <textarea class="form-control" name="message" rows="3"></textarea>
