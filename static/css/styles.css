@@ -32,3 +32,13 @@ footer {
   color: #cccccc;
   width: 100%;
 }
+
+table th {
+  background-color: #28a745;
+  color: #fff;
+}
+
+table td,
+table th {
+  vertical-align: middle;
+}

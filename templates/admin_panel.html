@@ -1,4 +1,4 @@
-{% block content %}
+{% extends "base.html" %} {% block content %}
 <h3>Admin Panel</h3>
 
 <h5 class="mt-3">Users</h5>
@@ -19,7 +19,7 @@
       <td>{{ u['name'] }}</td>
       <td>{{ u['email'] }}</td>
       <td>{{ u['is_admin'] }}</td>
-      <td>{{ u['created_at'] if u.get('created_at') else '' }}</td>
+      <td>{{ u['created_at'] if u['created_at'] else '' }}</td>
     </tr>
     {% endfor %}
   </tbody>

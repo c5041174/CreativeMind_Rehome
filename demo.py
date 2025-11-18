@@ -1,19 +1,21 @@
 import sqlite3
-import os
+import hashlib
+
 
 conn = sqlite3.connect("db/rehome.db")
 
-cosur = conn.cursor()
+cursor = conn.cursor()
+
+password = hashlib.sha256("admin123".encode()).hexdigest()
+
+cursor.execute("""
+INSERT INTO users (name, email, password, is_admin)
+VALUES (?, ?, ?, 1)
+""", ("Admin", "admin@rehome.com", password))
 
 
-items = cosur.execute(
-        "SELECT items.*, users.name AS owner_name "
-        "FROM items JOIN users ON items.user_id = users.id "
-        "WHERE items.status = 'available' "
-        "ORDER BY items.created_at DESC"
-    ).fetchall()
 
-print(items)
+print("Admin account created.")
 
 conn.commit()
 conn.close()
