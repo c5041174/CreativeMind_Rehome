@@ -15,12 +15,20 @@ Before running:
 2. run `python create_db.py` to create rehome.db and default admin account
 3. install requirements: Flask, Werkzeug
 """
+
 import os
 import sqlite3
 from functools import wraps
 from flask import (
-    Flask, render_template, request, redirect, url_for,
-    flash, session, send_from_directory, abort
+    Flask,
+    render_template,
+    request,
+    redirect,
+    url_for,
+    flash,
+    session,
+    send_from_directory,
+    abort,
 )
 from logics.logic import get_db, categories, conditions
 from werkzeug.security import generate_password_hash, check_password_hash
@@ -36,28 +44,32 @@ app = Flask(__name__, instance_relative_config=True)
 
 # load instance config if present; fallback defaults
 try:
-    app.config.from_pyfile('instance/config.py')
+    app.config.from_pyfile("instance/config.py")
 except Exception:
     # fallbacks (safe defaults for development)
-    app.config.update({
-        "SECRET_KEY": "rehome",
-        "UPLOAD_FOLDER": "static/uploads",
-        "DATABASE": "db/rehome.db",
-        "ALLOWED_EXTENSIONS": {"png", "jpg", "jpeg", "gif"}
-    })
+    app.config.update(
+        {
+            "SECRET_KEY": "rehome",
+            "UPLOAD_FOLDER": "static/uploads",
+            "DATABASE": "db/rehome.db",
+            "ALLOWED_EXTENSIONS": {"png", "jpg", "jpeg", "gif"},
+        }
+    )
 
 # ensure upload folder exists
-os.makedirs(app.config.get('UPLOAD_FOLDER', 'static/uploads'), exist_ok=True)
+os.makedirs(app.config.get("UPLOAD_FOLDER", "static/uploads"), exist_ok=True)
 
 # convenience
-SECRET_KEY =app.config.get("SECRET_KEY", "rehome")
-DB_PATH = app.config.get('DATABASE', 'db/rehome.db')
-UPLOAD_FOLDER = app.config.get('UPLOAD_FOLDER', 'static/uploads')
-ALLOWED_EXT = set(app.config.get('ALLOWED_EXTENSIONS', {'png', 'jpg', 'jpeg', 'gif'}))
+SECRET_KEY = app.config.get("SECRET_KEY", "rehome")
+DB_PATH = app.config.get("DATABASE", "db/rehome.db")
+UPLOAD_FOLDER = app.config.get("UPLOAD_FOLDER", "static/uploads")
+ALLOWED_EXT = set(app.config.get("ALLOWED_EXTENSIONS", {"png", "jpg", "jpeg", "gif"}))
 
 siteName = "ReHome"
 app.secret_key = SECRET_KEY  # Required for CSRF protection
 csrf = CSRFProtect(app)  # This automatically protects all POST routes
+
+
 # Set the site name in the app context
 @app.context_processor
 def inject_site_name():
@@ -70,8 +82,6 @@ def inject_csrf_token():
     return dict(csrf_token=generate_csrf())
 
 
-
-
 # def get_db():
 #     """Return a sqlite3 connection with row factory as dict-like access."""
 #     conn = sqlite3.connect(DB_PATH)
@@ -80,26 +90,32 @@ def inject_csrf_token():
 #     conn.execute("PRAGMA foreign_keys = ON;")
 #     return conn
 
+
 def allowed_file(filename):
     """Check file extension is allowed."""
     if not filename:
         return False
-    ext = filename.rsplit('.', 1)[-1].lower()
-    return '.' in filename and ext in ALLOWED_EXT
+    ext = filename.rsplit(".", 1)[-1].lower()
+    return "." in filename and ext in ALLOWED_EXT
+
 
 def login_required(func):
     """Decorator to protect routes that need authentication."""
+
     @wraps(func)
     def wrapper(*args, **kwargs):
-        if 'user_id' not in session:
+        if "user_id" not in session:
             flash("Please log in to access that page.", "warning")
-            return redirect(url_for('login', next=request.path))
+            return redirect(url_for("login", next=request.path))
         return func(*args, **kwargs)
+
     return wrapper
+
 
 # --------------------
 # Routes
 # --------------------
+
 
 @app.route("/")
 @app.route("/<selectitem>")
@@ -107,7 +123,7 @@ def index(selectitem=None):
     """Homepage: list available items."""
     items = selectitem
     conn = get_db(DB_PATH)
-    if not items :
+    if not items:
         items = conn.execute(
             "SELECT items.*, users.name AS owner_name "
             "FROM items JOIN users ON items.user_id = users.id "
@@ -115,11 +131,13 @@ def index(selectitem=None):
             "ORDER BY items.created_at DESC"
         ).fetchall()
     else:
-        items = conn.execute("select * from items where category = ? ",(selectitem,)).fetchall()
+        items = conn.execute(
+            "select * from items where category = ? ", (selectitem,)
+        ).fetchall()
     conn.commit()
     conn.close()
-    return render_template("index.html", items=items)
-    
+    return render_template("index.html", categories=categories, items=items)
+
 
 # ---------- Authentication ----------
 @app.route("/register/", methods=("GET", "POST"))
@@ -130,42 +148,42 @@ def register():
         name = request.form.get("name", "").strip()
         email = request.form.get("email", "").strip().lower()
         password = request.form.get("password", "")
-        confirm_password = request.form.get("ConfirmPassword","")
-        
+        confirm_password = request.form.get("ConfirmPassword", "")
+
         user = conn.execute("SELECT * FROM users WHERE email = ?", (email,)).fetchone()
-        
+
         if not name or not email or not password or not confirm_password:
             error = "Please fill in all required fields."
         elif password != confirm_password:
-            error = 'Passwords do not match!'
-        elif user :
+            error = "Passwords do not match!"
+        elif user:
             error = f"Email {email} already exits"
-        if error is None :
-            
+        if error is None:
+
             hashed = generate_password_hash(password)
 
             try:
                 conn.execute(
                     "INSERT INTO users (name, email, password) VALUES (?, ?, ?)",
-                    (name, email, hashed)
+                    (name, email, hashed),
                 )
                 conn.commit()
-                flash(category='success', message=f"Welcome {name}")
+                flash(category="success", message=f"Welcome {name}")
                 return redirect(url_for("login"))
             except sqlite3.IntegrityError:
                 flash("Email already registered. Try logging in.", "danger")
             finally:
                 conn.close()
         else:
-            flash(category='danger', message=error)
+            flash(category="danger", message=error)
             return redirect(url_for("register"))
-            
+
     return render_template("register.html")
 
 
 @app.route("/login", methods=["GET", "POST"])
 def login():
-    next_page = request.args.get('next') or url_for('dashboard')
+    next_page = request.args.get("next") or url_for("dashboard")
     if request.method == "POST":
         email = request.form.get("email", "").strip().lower()
         password = request.form.get("password", "")
@@ -194,6 +212,7 @@ def logout():
     flash("You have been logged out.", "info")
     return redirect(url_for("index"))
 
+
 # ---------- User Dashboard & Items ----------
 @app.route("/dashboard")
 @login_required
@@ -201,10 +220,13 @@ def dashboard():
     conn = get_db(DB_PATH)
     items = conn.execute(
         "SELECT * FROM items WHERE user_id = ? ORDER BY created_at DESC",
-        (session["user_id"],)
+        (session["user_id"],),
     ).fetchall()
     conn.close()
-    return render_template("dashboard.html", items=items, )
+    return render_template(
+        "dashboard.html",
+        items=items,
+    )
 
 
 @app.route("/add-item", methods=["GET", "POST"])
@@ -215,11 +237,9 @@ def add_item():
         description = request.form.get("description", "").strip()
         category = request.form.get("category", "").strip()
         condition = request.form.get("condition", "").strip()
-        
-        
-        location = f'{request.form.get("location", "").strip()} { request.form.get("Postalcode", "").strip()}' 
-       
-        
+
+        location = f'{request.form.get("location", "").strip()} { request.form.get("Postalcode", "").strip()}'
+
         image = request.files.get("image")
         image_filename = None
 
@@ -232,6 +252,7 @@ def add_item():
                 filename = secure_filename(image.filename)
                 # avoid filename collision by prefixing user id + timestamp
                 import time
+
                 prefix = f"{session.get('user_id', 'u')}_{int(time.time())}_"
                 filename = prefix + filename
                 save_path = os.path.join(UPLOAD_FOLDER, filename)
@@ -245,14 +266,24 @@ def add_item():
         conn.execute(
             "INSERT INTO items (user_id, title, description, category, condition, image_path, location) "
             "VALUES (?, ?, ?, ?, ?, ?, ?)",
-            (session["user_id"], title, description, category, condition, image_filename, location)
+            (
+                session["user_id"],
+                title,
+                description,
+                category,
+                condition,
+                image_filename,
+                location,
+            ),
         )
         conn.commit()
         conn.close()
         flash("Item posted successfully.", "success")
         return redirect(url_for("dashboard"))
 
-    return render_template("add_item.html",categories = categories, conditions = conditions)
+    return render_template(
+        "add_item.html", categories=categories, conditions=conditions
+    )
 
 
 @app.route("/item/<int:item_id>")
@@ -262,7 +293,7 @@ def item_detail(item_id):
         "SELECT items.*, users.name AS owner_name, users.email AS owner_email "
         "FROM items JOIN users ON items.user_id = users.id "
         "WHERE items.id = ?",
-        (item_id,)
+        (item_id,),
     ).fetchone()
     conn.close()
     if not item:
@@ -275,7 +306,9 @@ def item_detail(item_id):
 def request_item(item_id):
     message = request.form.get("message", "").strip()
     conn = get_db(DB_PATH)
-    item = conn.execute("SELECT * FROM items WHERE id = ? AND status = 'available'", (item_id,)).fetchone()
+    item = conn.execute(
+        "SELECT * FROM items WHERE id = ? AND status = 'available'", (item_id,)
+    ).fetchone()
     if not item:
         conn.close()
         flash("Item not available.", "warning")
@@ -289,12 +322,13 @@ def request_item(item_id):
 
     conn.execute(
         "INSERT INTO requests (item_id, requester_id, message) VALUES (?, ?, ?)",
-        (item_id, session["user_id"], message)
+        (item_id, session["user_id"], message),
     )
     conn.commit()
     conn.close()
     flash("Request submitted. The owner will be notified.", "success")
     return redirect(url_for("dashboard"))
+
 
 # ---------- Admin ----------
 @app.route("/admin")
@@ -303,7 +337,9 @@ def admin_panel():
     if not session.get("is_admin"):
         abort(403)
     conn = get_db(DB_PATH)
-    users = conn.execute("SELECT id, name, email, is_admin, created_at FROM users ORDER BY created_at DESC").fetchall()
+    users = conn.execute(
+        "SELECT id, name, email, is_admin, created_at FROM users ORDER BY created_at DESC"
+    ).fetchall()
     items = conn.execute(
         "SELECT items.id, items.title, items.status, users.name AS owner_name "
         "FROM items JOIN users ON items.user_id = users.id ORDER BY items.created_at DESC"
@@ -314,7 +350,9 @@ def admin_panel():
         "ORDER BY requests.created_at DESC"
     ).fetchall()
     conn.close()
-    return render_template("admin_panel.html", users=users, items=items, requests=requests)
+    return render_template(
+        "admin_panel.html", users=users, items=items, requests=requests
+    )
 
 
 @app.route("/admin/delete-item/<int:item_id>")
@@ -324,7 +362,9 @@ def admin_delete_item(item_id):
         abort(403)
     conn = get_db(DB_PATH)
     # optionally remove image file
-    item = conn.execute("SELECT image_path FROM items WHERE id = ?", (item_id,)).fetchone()
+    item = conn.execute(
+        "SELECT image_path FROM items WHERE id = ?", (item_id,)
+    ).fetchone()
     if item and item["image_path"]:
         try:
             os.remove(os.path.join(UPLOAD_FOLDER, item["image_path"]))
@@ -349,27 +389,35 @@ def admin_update_request(req_id, action):
     conn.commit()
     # optionally, if approved mark item status as 'claimed'
     if action == "approved":
-        req = conn.execute("SELECT item_id FROM requests WHERE id = ?", (req_id,)).fetchone()
+        req = conn.execute(
+            "SELECT item_id FROM requests WHERE id = ?", (req_id,)
+        ).fetchone()
         if req:
-            conn.execute("UPDATE items SET status = 'claimed' WHERE id = ?", (req["item_id"],))
+            conn.execute(
+                "UPDATE items SET status = 'claimed' WHERE id = ?", (req["item_id"],)
+            )
             conn.commit()
     conn.close()
     flash("Request updated.", "success")
     return redirect(url_for("admin_panel"))
+
 
 # ---------- Static uploads route ----------
 @app.route("/uploads/<path:filename>")
 def uploaded_file(filename):
     return send_from_directory(UPLOAD_FOLDER, filename)
 
+
 # ---------- Error handlers ----------
 @app.errorhandler(403)
 def forbidden(e):
     return render_template("errors/403.html"), 403
 
+
 @app.errorhandler(404)
 def page_not_found(e):
     return render_template("errors/404.html"), 404
+
 
 # --------------------
 # Run

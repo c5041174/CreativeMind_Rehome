@@ -1,23 +1,17 @@
-{% extends "base.html" %} {% block content %}
-<div>
-  <div class="dropdown">
-    <button
-      class="btn btn-secondary dropdown-toggle"
-      type="button"
-      id="dropdownMenuButton"
-      data-toggle="dropdown"
-      aria-haspopup="true"
-      aria-expanded="false"
-    >
-      Dropdown button
-    </button>
-    <div class="dropdown-menu" aria-labelledby="dropdownMenuButton">
-      <a class="dropdown-item" href="#">Action</a>
-      <a class="dropdown-item" href="#">Another action</a>
-      <a class="dropdown-item" href="#">Something else here</a>
-    </div>
-  </div>
+{% extends "base.html" %} {% block sidebarContent %}
+<div class="">
+  <ul class="list-group list-group-flush">
+    <h1 class="text-white">Categories</h1>
+    {% for category in categories.get("categories") %}
+
+    <li class="list-group-item">
+      <a href="/{{category}}">{{category}}</a>
+    </li>
+
+    {% endfor %}
+  </ul>
 </div>
+{% endblock %} {% block content %}
 <div class="d-flex justify-content-between align-items-center mb-3">
   <div>
     <h1 class="d-inline p-2 mb-0">Available Items</h1>
@@ -35,7 +29,7 @@
 
 <div class="row">
   {% if items %} {% for item in items %}
-  <div class="col-md-4 mb-4">
+  <div class="col-md-2 mb-4">
     <div class="card h-100">
       {% if item['image_path'] %}
       <img

@@ -95,7 +95,11 @@
           aria-label="Close"
         ></button>
       </div>
-      {% endfor %} {% endif %} {% endwith %} {% block content %}{% endblock %}
+      {% endfor %} {% endif %} {% endwith %}
+      <div class="row">
+        <div class="col-md-2">{% block sidebarContent %} {% endblock %}</div>
+        <div class="col-md-10">{% block content %}{% endblock %}</div>
+      </div>
     </div>
 
     <footer class="mt-5 py-3 text-center text-secondary">

@@ -1,42 +1,38 @@
-
 import sqlite3
 
 
 conditions = {
-  "conditions": [
-    "Brand New",
-    "Like New",
-    "Gently Used",
-    "Good",
-    "Fair",
-    "Needs Repair",
-    "For Parts Only"
-  ]
+    "conditions": [
+        "Brand New",
+        "Like New",
+        "Gently Used",
+        "Good",
+        "Fair",
+        "Needs Repair",
+        "For Parts Only",
+    ]
 }
-
 
 
 categories = {
-  "categories": [
-    "Fast foods" ,
-    "Fresh Foods",
-    "Goceries",
-    "Furniture",
-    "Clothing",
-    "Electronics",
-    "Books",
-    "Toys",
-    "Kitchenware",
-    "Appliances",
-    "Tools",
-    "Sports",
-    "Baby Items",
-    "Pet Supplies",
-    "Miscellaneous"
-  ]
+    "categories": [
+        "Fast foods",
+        "Fresh Foods",
+        "Goceries",
+        "Furniture",
+        "Clothing",
+        "Electronics",
+        "Books",
+        "Toys",
+        "Kitchenware",
+        "Appliances",
+        "Tools",
+        "Sports",
+        "Baby Items",
+        "Pet Supplies",
+        "Miscellaneous",
+    ]
 }
-
-
 
 
 def get_db(DB_PATH):
@@ -46,4 +42,3 @@ def get_db(DB_PATH):
     # enable foreign keys
     conn.execute("PRAGMA foreign_keys = ON;")
     return conn
-
