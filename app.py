@@ -132,7 +132,11 @@ def index(selectitem=None):
         ).fetchall()
     else:
         items = conn.execute(
-            "select * from items where category = ? ", (selectitem,)
+            "SELECT items.*, users.name AS owner_name "
+            "FROM items JOIN users ON items.user_id = users.id "
+            "WHERE category = ? "
+            "ORDER BY items.created_at DESC",
+            (selectitem,),
         ).fetchall()
     conn.commit()
     conn.close()
@@ -426,4 +430,4 @@ if __name__ == "__main__":
     # ensure secret key available in session
     app.secret_key = app.config.get("SECRET_KEY", os.urandom(24))
     # debug True only for development — remove in production
-    app.run(debug=True)
+    # app.run(debug=True)

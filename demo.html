@@ -1,45 +1,20 @@
-<div class="card mb-3" style="max-width: 540px;">
-    <div class="row g-0">
-        <div class="col-md-4">
-            {% if item['image_path'] %}
-            <img src="{{ url_for('uploaded_file', filename=item['image_path']) }}" class="img-fluid rounded" />
-            {% else %}
-            <div class="bg-light p-5 text-center rounded">No image</div>
-            {% endif %}
-        </div>
-        <div class="col-md-8">
-            <div class="card-body">
-                <h3>{{ item['title'] }}</h3>
-                <p class="card-text">Category: {{ item['category']}}</p>
-                <p class="card-text"><small class="text-body-secondary">Condition: {{ item['condition'] }}</small></p>
-                <p class="card-text">{{ item['description'] }}</p>
-                <p class="card-text">Owner: {{ item['owner_name'] }}</p>
-                <p class="card-text">contact: {{ item['owner_email'] }}</p>
-                <p class="card-text">location: {{ item['location'] }}</p>
-                <p class="card-text">Owner: {{ item['owner_name'] }}</p>
-            </div>
-            {% if session.get('user_id') and session.get('user_id') != item['user_id']
-            %}
-            <form method="post" action="{{ url_for('request_item', item_id=item['id']) }}">
-                <input type="hidden" name="csrf_token" value="{{ csrf_token }}" />
-                <div class="mb-2">
-                    <label class="form-label">Message to owner (optional)</label>
-                    <textarea class="form-control" name="message" rows="3"></textarea>
-                </div>
-                <button class="btn btn-primary">Request this item</button>
-            </form>
-            {% elif not session.get('user_id') %}
-            <p>
-                Please
-                <a class="btn btn-primary" href="{{ url_for('login') }}">login</a> to
-                request this item.
-            </p>
-            {% else %}
-            <p class="text-muted">This is your listing.</p>
-            {% endif %}
-        </div>
-    </div>
-</div>
-<script>
+<!DOCTYPE html>
+<html lang="en">
 
-</script>
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <script src="./static/js/jquery-3.6.0latest.js"></script>
+    <title>Document</title>
+</head>
+
+<body>
+    <h1 id="hh">akindele</h1>
+    <script>
+        $(document).ready(function () {
+            $("#hh").css("color", "red")
+        })
+    </script>
+</body>
+
+</html>

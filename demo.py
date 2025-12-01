@@ -1,18 +1,21 @@
 import sqlite3
-import hashlib
+
+# from werkzeug.security import generate_password_hash
 
 
 conn = sqlite3.connect("db/rehome.db")
 
 cursor = conn.cursor()
 
-password = hashlib.sha256("admin123".encode()).hexdigest()
-
-results = cursor.execute("select * from items where category = ? ",(None,)).fetchall()
+# hashed = generate_password_hash("group")
 
 
+conn.execute(
+    "DELETE from requests WHERE item_id = 1",
+).fetchone()
 
-print(results)
+
+# print(selectitem)
 
 conn.commit()
 conn.close()

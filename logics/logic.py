@@ -30,6 +30,7 @@ categories = {
         "Sports",
         "Baby Items",
         "Pet Supplies",
+        "Bags",
         "Miscellaneous",
     ]
 }
