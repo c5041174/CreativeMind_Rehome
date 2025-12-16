@@ -9,7 +9,7 @@ cursor = conn.cursor()
 
 # hashed = generate_password_hash("group")
 
-Search = "Groceries"
+
 items = cursor.execute(
     "SELECT items.*, users.name AS owner_name "
     "FROM items JOIN users ON items.user_id = users.id "
