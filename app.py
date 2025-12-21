@@ -32,7 +32,7 @@ from flask import (
     send_from_directory,
     abort,
 )
-from logics.logic import get_db, categories, conditions
+from logics.logic import *
 from werkzeug.security import generate_password_hash, check_password_hash
 from werkzeug.utils import secure_filename
 from flask_wtf import CSRFProtect
@@ -189,7 +189,7 @@ def index(selectitem=None):
 def register():
 
     if request.method == "POST":
-        # error = None
+        error = None
         conn = get_db(DB_PATH)
         name = request.form.get("name", "").strip()
 
@@ -202,7 +202,7 @@ def register():
         elif password != confirm_password:
             error = "Passwords do not match!"
 
-        if error is None:
+        if error == None:
 
             hashed = generate_password_hash(password)
 
@@ -267,7 +267,7 @@ def dashboard():
         (session["user_id"],),
     ).fetchall()
     request_items = conn.execute(
-        "SELECT requests.id, requests.status, requests.message, requests.created_at, items.title as item_title, u.name as requester_name, items.image_path "
+        "SELECT requests.id, requests.status, requests.message, requests.created_at, items.title as item_title, u.name as requester_name, u.id, items.image_path "
         "FROM requests JOIN items ON requests.item_id = items.id JOIN users u ON requests.requester_id = u.id "
         "where u.id = ? "
         "ORDER BY requests.created_at DESC",
@@ -452,6 +452,7 @@ def admin_update_request(req_id, action):
 
 # ---------- Static uploads route ----------
 @app.route("/uploads/<path:filename>")
+@login_required
 def uploaded_file(filename):
     return send_from_directory(UPLOAD_FOLDER, filename)
 
@@ -465,6 +466,128 @@ def forbidden(e):
 @app.errorhandler(404)
 def page_not_found(e):
     return render_template("errors/404.html"), 404
+
+
+# Edit an item Page
+@app.route("/update/<int:item_id>/", methods=("GET", "POST"))
+@login_required
+def update(item_id):
+
+    # Get item data
+    item = get_item_by_id(item_id, DB_PATH)
+
+    # Check for errors
+    error = None
+    if item is None:  # If item not found, add error message
+        error = "item not found!"
+        flash(category="warning", message=error)
+    elif item["user_id"] != session.get(
+        "user_id"
+    ):  # Check user is only accessing their own items
+        error = "You do not have permission to edit this item."
+        flash(category="danger", message=error)
+    # If there was an error, redirect to items list
+    if error:
+        return redirect(url_for("/"))
+
+    # If the request method is POST, process the form submission
+    if request.method == "POST":
+
+        # Get the input from the form
+
+        title = request.form.get("title", "").strip()
+        description = request.form.get("description", "").strip()
+        category = request.form.get("category", "").strip()
+        condition = request.form.get("condition", "").strip()
+
+        location = f'{request.form.get("location", "").strip()} { request.form.get("Postalcode", "").strip()}'
+
+        image = request.files.get("image")
+        image_filename = None
+
+        if not title:
+            flash("Title is required.", "danger")
+            return redirect(url_for("add_item"))
+
+        if image and image.filename:
+            if allowed_file(image.filename):
+                filename = secure_filename(image.filename)
+                # avoid filename collision by prefixing user id + timestamp
+                import time
+
+                prefix = f"{session.get('user_id', 'u')}_{int(time.time())}_"
+                filename = prefix + filename
+                save_path = os.path.join(UPLOAD_FOLDER, filename)
+
+                if filename != item["image_path"]:
+                    # delete old image file
+                    try:
+                        os.remove(os.path.join(UPLOAD_FOLDER, item["image_path"]))
+                    except Exception:
+                        pass
+                image.save(save_path)
+                image_filename = filename
+
+            else:
+                flash("Invalid image type. Allowed: png, jpg, jpeg, gif.", "danger")
+                return redirect(url_for("add_item"))
+        # Validate the input
+        if not title:
+            flash(category="danger", message="Title is required!")
+            return redirect(url_for("update", item_id=item_id))
+
+        # Use the database function to update the item
+        update_item(
+            title,
+            description,
+            category,
+            condition,
+            location,
+            image_filename,
+            item_id,
+            DB_PATH,
+        )
+
+        # Flash a success message and redirect to the dashboard page
+        flash(category="success", message="Updated successfully!")
+        return redirect(url_for("dashboard"))
+
+    return render_template(
+        "update.html", item=item, categories=categories, conditions=conditions
+    )
+
+
+# Delete an item
+@app.route("/delete/<int:item_id>", methods=("GET", "POST"))
+@login_required
+def delete(item_id):
+
+    # Get the item
+    item = get_item_by_id(item_id, DB_PATH)
+    # Check for errors
+
+    error = None
+    if request.method == "POST":
+        if item is None:  # If item not found, add error message
+            error = "Item not found!"
+            flash(category="warning", message=error)
+        elif item["user_id"] != session.get(
+            "user_id"
+        ):  # Check user is only accessing their own items
+            error = "You do not have permission to delete this item ."
+            flash(category="danger", message=error)
+
+        # If there was an error, redirect to films list
+        if error:
+            return redirect(url_for("dashboard"))
+
+        # Use the database function to delete the item
+        delete_item(item_id, DB_PATH)
+
+        # Flash a success message and redirect to the index page
+        flash(category="success", message="Item deleted successfully!")
+        return redirect(url_for("dashboard"))
+    return render_template("delete_item.html", item=item)
 
 
 # --------------------

@@ -10,15 +10,10 @@ cursor = conn.cursor()
 # hashed = generate_password_hash("group")
 
 
-items = cursor.execute(
-    "SELECT items.*, users.name AS owner_name "
-    "FROM items JOIN users ON items.user_id = users.id "
-    "WHERE items.status = 'available' "
-    "ORDER BY items.created_at DESC "
-).fetchall()
+item = cursor.execute("delete FROM items WHERE id = ?", (21,)).fetchone()
 
-for item in items[0:4]:
-    print(item[6])
+
+print(item)
 
 conn.commit()
 conn.close()

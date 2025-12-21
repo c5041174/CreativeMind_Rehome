@@ -1,0 +1,85 @@
+{% extends "base.html" %} {% block content %}
+<div class="row justify-content-center">
+    <div class="col-md-8">
+        <h3>Update an item</h3>
+        <form method="post" enctype="multipart/form-data" novalidate>
+            <input type="hidden" name="csrf_token" value="{{ csrf_token }}" />
+            <div class="mb-2">
+                <label class="form-label">Title</label>
+                <input class="form-control" name="title" placeholder="Title" value="{{ item['title'] }}" required />
+            </div>
+
+            <div class="mb-2">
+                <label class="form-label">Description</label>
+                <textarea class="form-control" name="description" rows="3"
+                    placeholder="Description">{{ item['description'] }}</textarea>
+            </div>
+
+            <div class="row mb-2">
+                <div class="col">
+                    <label class="form-label">Category</label>
+                    <div>
+                        <select name="category" class="form-select" id="category" aria-label="category select">
+                            <option value="">Select category</option>
+                            {% for category in categories.get("categories")%}
+                            <option value="{{category}}" {% if item['category']==category %} selected {% endif %}>
+                                {{category}}</option>
+                            {%endfor%}
+
+                            <option value="Other">Other</option>
+                        </select>
+                    </div>
+                </div>
+                <div class="col">
+                    <label class="form-label" for="condition">Condition</label>
+                    <div>
+                        <select name="condition" class="form-select" id="condition">
+                            <option value="">Select condition</option>
+                            {% for condition in conditions.conditions%}
+                            <option value="{{condition}}" {% if item['condition']==condition %} selected {% endif %}>
+                                {{condition}}</option>
+                            {%endfor%}
+                            <option value="Other">Other</option>
+                        </select>
+                    </div>
+                </div>
+            </div>
+
+            <div class="mb-2">
+                <label class="form-label">Location (optional)</label>
+                <input class="form-control" name="location" placeholder="Location" value="{{ item['location'] }}" />
+            </div>
+            <div class="mb-2">
+                <label for="Postalcode" class="form-label">Postalcode</label>
+                <input id="Postalcode" class="form-control" name="Postalcode" placeholder="Postalcode"
+                    value="{{ item['Postalcode'] }}" />
+            </div>
+
+            <div class="mb-3">
+                <label class="form-label">Upload image</label>
+
+                <input class="form-control" type="file" name="image" accept="image/*" placeholder="item image"
+                    value="{{ item['image_path'] }}" />
+            </div>
+
+            <button class="btn btn-outline-secondary">Update Item</button>
+            <a class="btn btn-outline-danger" href="{{ url_for('dashboard') }}" role="button">Cancel</a>
+        </form>
+    </div>
+</div>
+{% endblock %}
+
+{% block sidebarContentupdate %}
+<!-- item Image -->
+<div class="card mt-3">
+    <div class="card-body text-center">
+        <h5 class="card-title">Item Image</h5>
+        {% if not item['image_path'] %}
+        <p class="text-muted">No image available</p>
+        {% else %}
+        <img src="{{ url_for('uploaded_file', filename=item['image_path']) }}" class="card-img-top"
+            alt="Image for {{ item['title'] }}">
+        {% endif %}
+    </div>
+</div>
+{% endblock %}

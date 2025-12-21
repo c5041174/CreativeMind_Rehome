@@ -9,7 +9,10 @@
 
 <div class="row">
   <h5 class="text-info mb-3">My Listing Items</h5>
-  {% if items %} {% for item in items %}
+
+  {% if items %}
+
+  {% for item in items %}
   <div class="col-md-4 mb-3">
     <div class="card h-100">
       {% if item['image_path'] %}
@@ -21,9 +24,9 @@
         <p class="card-text text-truncate">{{ item['description'] }}</p>
         <p class="small text-muted">Status: {{ item['status'] }}</p>
         <div class="mt-auto">
-          <!-- Edit/Delete not implemented in backend placeholder; keep links for future -->
-          <a class="btn btn-outline-secondary btn-sm" href="#">Edit</a>
-          <a class="btn btn-outline-danger btn-sm" href="#">Delete</a>
+          <!-- Edit an item -->
+          <a class="btn btn-outline-secondary btn-sm" href="{{ url_for('update', item_id=item['id']) }}">Update</a>
+          <a class="btn btn-outline-danger btn-sm" href="{{ url_for('delete', item_id=item['id']) }}">Delete</a>
         </div>
       </div>
     </div>
@@ -36,6 +39,7 @@
     </p>
   </div>
   {% endif %}
+
 </div>
 
 <div class="row">
