@@ -1,4 +1,9 @@
+import re
 import sqlite3
+from flask import *
+from functools import wraps
+
+# from db.init_db import DB_PATH
 
 # list of item conditions
 conditions = {
@@ -46,6 +51,135 @@ def get_db(DB_PATH):
     return conn
 
 
+# add new user to the database
+def register_user(name, email, hashed, conn):
+
+    conn.execute(
+        "INSERT INTO users (name, email, password) VALUES (?, ?, ?)",
+        (name, email, hashed),
+    )
+    conn.commit()
+
+
+# Fetch all available items with optional search or category filter
+def get_all_items(DB_PATH, selectitem=None):
+    items = selectitem
+    conn = get_db(DB_PATH)
+    if request.method == "POST":
+        Search = request.form.get("search", "").strip().lower()
+        if not Search:
+            items = conn.execute(
+                "SELECT items.*, users.name AS owner_name "
+                "FROM items JOIN users ON items.user_id = users.id "
+                "WHERE items.status = 'available' "
+                "ORDER BY items.created_at DESC"
+            ).fetchall()
+        else:
+            items = conn.execute(
+                "SELECT items.*, users.name AS owner_name "
+                "FROM items JOIN users ON items.user_id = users.id "
+                "WHERE category like ? "
+                "ORDER BY items.created_at DESC",
+                ("{}%".format(Search),),
+            ).fetchall()
+    else:
+        if not items:
+            items = conn.execute(
+                "SELECT items.*, users.name AS owner_name "
+                "FROM items JOIN users ON items.user_id = users.id "
+                "WHERE items.status = 'available' "
+                "ORDER BY items.created_at DESC"
+            ).fetchall()
+
+        else:
+            items = conn.execute(
+                "SELECT items.*, users.name AS owner_name "
+                "FROM items JOIN users ON items.user_id = users.id "
+                "WHERE category = ? "
+                "ORDER BY items.created_at DESC",
+                (selectitem,),
+            ).fetchall()
+    conn.commit()
+    conn.close()
+    return items
+
+
+# get an item by its ID with owner details
+def get_item_by_id(item_id, DB_PATH):
+
+    conn = get_db(DB_PATH)
+    item = conn.execute(
+        "SELECT items.*, users.name AS owner_name, users.email AS owner_email "
+        "FROM items JOIN users ON items.user_id = users.id "
+        "WHERE items.id = ?",
+        (item_id,),
+    ).fetchone()
+    conn.close()
+    return item
+
+
+# Fetch dashboard items and requests for a user
+def get_user_dashboard_items(DB_PATH):
+    conn = get_db(DB_PATH)
+    items = conn.execute(
+        "SELECT * FROM items WHERE user_id = ? ORDER BY created_at DESC",
+        (session["user_id"],),
+    ).fetchall()
+    request_items = conn.execute(
+        "SELECT requests.id, requests.status, requests.message, requests.created_at, items.title as item_title, u.name as requester_name, u.id, items.image_path "
+        "FROM requests JOIN items ON requests.item_id = items.id JOIN users u ON requests.requester_id = u.id "
+        "where u.id = ? "
+        "ORDER BY requests.created_at DESC",
+        (session["user_id"],),
+    ).fetchall()
+    return items, request_items
+
+
+# login required decorator
+def login_required(func):
+    """Decorator to protect routes that need authentication."""
+
+    @wraps(func)
+    def wrapper(*args, **kwargs):
+        if "user_id" not in session:
+            flash("Please log in to access that page.", "warning")
+            return redirect(url_for("login", next=request.path))
+        return func(*args, **kwargs)
+
+    return wrapper
+
+
+# Add new item to the database
+def add_new_item(
+    title, description, category, condition, image_filename, location, DB_PATH
+):
+    conn = get_db(DB_PATH)
+    conn.execute(
+        "INSERT INTO items (user_id, title, description, category, condition, image_path, location) "
+        "VALUES (?, ?, ?, ?, ?, ?, ?)",
+        (
+            session["user_id"],
+            title,
+            description,
+            category,
+            condition,
+            image_filename,
+            location,
+        ),
+    )
+    conn.commit()
+    conn.close()
+
+
+# Get User by email
+# valiate if email exists
+def get_user_by_email(email, DB_PATH):
+    conn = get_db(DB_PATH)
+    user = conn.execute("SELECT * FROM users WHERE email = ?", (email,)).fetchone()
+    conn.close()
+    return user
+
+
 # Get an item by its ID
 def get_item_by_id(item_id, DB_PATH):
     conn = get_db(DB_PATH)
@@ -82,3 +216,22 @@ def delete_item(item_id, DB_PATH):
     conn.execute("DELETE FROM items WHERE id = ?", (item_id,))
     conn.commit()
     conn.close()
+
+
+# Admin control panel data fetch
+def admin_control_panel(DB_PATH):
+    conn = get_db(DB_PATH)
+    users = conn.execute(
+        "SELECT id, name, email, is_admin, created_at FROM users ORDER BY created_at DESC"
+    ).fetchall()
+    items = conn.execute(
+        "SELECT items.id, items.title, items.status, users.name AS owner_name "
+        "FROM items JOIN users ON items.user_id = users.id ORDER BY items.created_at DESC"
+    ).fetchall()
+    requests = conn.execute(
+        "SELECT requests.id, requests.status, requests.message, requests.created_at, items.title as item_title, u.name as requester_name "
+        "FROM requests JOIN items ON requests.item_id = items.id JOIN users u ON requests.requester_id = u.id "
+        "ORDER BY requests.created_at DESC"
+    ).fetchall()
+    conn.close()
+    return users, items, requests

@@ -19,7 +19,7 @@ Before running:
 import os
 from re import search
 import sqlite3
-from functools import wraps
+
 from urllib.request import Request
 from flask import (
     Flask,
@@ -98,18 +98,17 @@ def inject_csrf_token():
 
 @app.route("/api/email/")
 def email():
-    # error = None
-    conn = get_db(DB_PATH)
+    error = None
+
     email_valid = request.args.get("data", "").strip().lower()
-    user = conn.execute(
-        "SELECT * FROM users WHERE email = ?", (email_valid,)
-    ).fetchone()
+    user = get_user_by_email(email_valid, DB_PATH)
     if user:
         error = f"Email {email_valid} already registered"
         return error
     return ""
 
 
+# check if uploaded file is allowed
 def allowed_file(filename):
     """Check file extension is allowed."""
     if not filename:
@@ -118,67 +117,17 @@ def allowed_file(filename):
     return "." in filename and ext in ALLOWED_EXT
 
 
-def login_required(func):
-    """Decorator to protect routes that need authentication."""
-
-    @wraps(func)
-    def wrapper(*args, **kwargs):
-        if "user_id" not in session:
-            flash("Please log in to access that page.", "warning")
-            return redirect(url_for("login", next=request.path))
-        return func(*args, **kwargs)
-
-    return wrapper
-
-
-# --------------------
 # Routes
-# --------------------
 
 
+# Homepage & Item Browsing
 @app.route("/search", methods=("GET", "POST"))
 @app.route("/")
 @app.route("/<selectitem>")
 def index(selectitem=None):
     """Homepage: list available items."""
-    items = selectitem
-    conn = get_db(DB_PATH)
-    if request.method == "POST":
-        Search = request.form.get("search", "").strip().lower()
-        if not Search:
-            items = conn.execute(
-                "SELECT items.*, users.name AS owner_name "
-                "FROM items JOIN users ON items.user_id = users.id "
-                "WHERE items.status = 'available' "
-                "ORDER BY items.created_at DESC"
-            ).fetchall()
-        else:
-            items = conn.execute(
-                "SELECT items.*, users.name AS owner_name "
-                "FROM items JOIN users ON items.user_id = users.id "
-                "WHERE category like ? "
-                "ORDER BY items.created_at DESC",
-                ("{}%".format(Search),),
-            ).fetchall()
-    else:
-        if not items:
-            items = conn.execute(
-                "SELECT items.*, users.name AS owner_name "
-                "FROM items JOIN users ON items.user_id = users.id "
-                "WHERE items.status = 'available' "
-                "ORDER BY items.created_at DESC"
-            ).fetchall()
 
-        else:
-            items = conn.execute(
-                "SELECT items.*, users.name AS owner_name "
-                "FROM items JOIN users ON items.user_id = users.id "
-                "WHERE category = ? "
-                "ORDER BY items.created_at DESC",
-                (selectitem,),
-            ).fetchall()
-    conn.commit()
-    conn.close()
+    items = get_all_items(DB_PATH, selectitem)
     return render_template("index.html", categories=categories, items=items)
 
 
@@ -207,11 +156,7 @@ def register():
             hashed = generate_password_hash(password)
 
             try:
-                conn.execute(
-                    "INSERT INTO users (name, email, password) VALUES (?, ?, ?)",
-                    (name, email, hashed),
-                )
-                conn.commit()
+                register_user(name, email, hashed, conn)
                 flash(category="success", message=f"Welcome {name}")
                 return redirect(url_for("login"))
             except sqlite3.IntegrityError:
@@ -232,10 +177,7 @@ def login():
         email = request.form.get("email", "").strip().lower()
         password = request.form.get("password", "")
 
-        conn = get_db(DB_PATH)
-        user = conn.execute("SELECT * FROM users WHERE email = ?", (email,)).fetchone()
-        conn.close()
-
+        user = get_user_by_email(email, DB_PATH)
         if user and check_password_hash(user["password"], password):
             session.clear()
             session["email"] = user["email"]
@@ -261,19 +203,7 @@ def logout():
 @app.route("/dashboard")
 @login_required
 def dashboard():
-    conn = get_db(DB_PATH)
-    items = conn.execute(
-        "SELECT * FROM items WHERE user_id = ? ORDER BY created_at DESC",
-        (session["user_id"],),
-    ).fetchall()
-    request_items = conn.execute(
-        "SELECT requests.id, requests.status, requests.message, requests.created_at, items.title as item_title, u.name as requester_name, u.id, items.image_path "
-        "FROM requests JOIN items ON requests.item_id = items.id JOIN users u ON requests.requester_id = u.id "
-        "where u.id = ? "
-        "ORDER BY requests.created_at DESC",
-        (session["user_id"],),
-    ).fetchall()
-    conn.close()
+    items, request_items = get_user_dashboard_items(DB_PATH)
     return render_template("dashboard.html", items=items, request_items=request_items)
 
 
@@ -310,22 +240,9 @@ def add_item():
                 flash("Invalid image type. Allowed: png, jpg, jpeg, gif.", "danger")
                 return redirect(url_for("add_item"))
 
-        conn = get_db(DB_PATH)
-        conn.execute(
-            "INSERT INTO items (user_id, title, description, category, condition, image_path, location) "
-            "VALUES (?, ?, ?, ?, ?, ?, ?)",
-            (
-                session["user_id"],
-                title,
-                description,
-                category,
-                condition,
-                image_filename,
-                location,
-            ),
+        add_new_item(
+            title, description, category, condition, image_filename, location, DB_PATH
         )
-        conn.commit()
-        conn.close()
         flash("Item posted successfully.", "success")
         return redirect(url_for("dashboard"))
 
@@ -336,14 +253,7 @@ def add_item():
 
 @app.route("/item/<int:item_id>")
 def item_detail(item_id):
-    conn = get_db(DB_PATH)
-    item = conn.execute(
-        "SELECT items.*, users.name AS owner_name, users.email AS owner_email "
-        "FROM items JOIN users ON items.user_id = users.id "
-        "WHERE items.id = ?",
-        (item_id,),
-    ).fetchone()
-    conn.close()
+    item = get_item_by_id(item_id, DB_PATH)
     if not item:
         abort(404)
     return render_template("item.html", item=item)
@@ -384,20 +294,7 @@ def request_item(item_id):
 def admin_panel():
     if not session.get("is_admin"):
         abort(403)
-    conn = get_db(DB_PATH)
-    users = conn.execute(
-        "SELECT id, name, email, is_admin, created_at FROM users ORDER BY created_at DESC"
-    ).fetchall()
-    items = conn.execute(
-        "SELECT items.id, items.title, items.status, users.name AS owner_name "
-        "FROM items JOIN users ON items.user_id = users.id ORDER BY items.created_at DESC"
-    ).fetchall()
-    requests = conn.execute(
-        "SELECT requests.id, requests.status, requests.message, requests.created_at, items.title as item_title, u.name as requester_name "
-        "FROM requests JOIN items ON requests.item_id = items.id JOIN users u ON requests.requester_id = u.id "
-        "ORDER BY requests.created_at DESC"
-    ).fetchall()
-    conn.close()
+    users, items, requests = admin_control_panel(DB_PATH)
     return render_template(
         "admin_panel.html", users=users, items=items, requests=requests
     )
