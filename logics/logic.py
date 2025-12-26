@@ -4,7 +4,7 @@ from flask import *
 from functools import wraps
 import os
 
-from app import update_password
+#from app import update_password
 
 # from db.init_db import DB_PATH
 
