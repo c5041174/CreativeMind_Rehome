@@ -10,7 +10,13 @@ cursor = conn.cursor()
 # hashed = generate_password_hash("group")
 
 
-item = cursor.execute("delete FROM items WHERE id = ?", (21,)).fetchone()
+item = cursor.execute(
+    "delete FROM requests WHERE item_id = ? and requester_id = ?",
+    (
+        17,
+        10,
+    ),
+).fetchone()
 
 
 print(item)

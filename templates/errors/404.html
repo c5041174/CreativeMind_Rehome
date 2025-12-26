@@ -1,9 +1,8 @@
 {% extends "base.html" %} {% block content %}
+<!-- 404 Error Page -->
 <div class="text-center py-5">
   <h1 class="display-4">404</h1>
   <p class="lead">Page not found.</p>
-  <a class="btn btn-outline-primary" href="{{ url_for('index') }}"
-    >Return home</a
-  >
+  <a class="btn btn-outline-primary" href="{{ url_for('index') }}">Return home</a>
 </div>
 {% endblock %}

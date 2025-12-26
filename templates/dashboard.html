@@ -1,41 +1,50 @@
 {% extends "base.html" %} {% block content %}
-
+<!-- Dashboard content -->
 <div class="d-flex justify-content-between align-items-center mb-3">
-  <h3 style="color: tomato">My Dashboard</h3>
-  <a class="btn btn-outline-secondary" href="{{ url_for('add_item') }}">Add new</a>
+
+  <a class="btn btn-primary" href="{{ url_for('add_item') }}">Add new</a>
 </div>
 
 
 
 <div class="row">
-  <h5 class="text-info mb-3">My Listing Items</h5>
+  <!-- Dashboard content -->
+
+  <h2>My Listing Items</h2>
+  <hr />
 
   {% if items %}
 
   {% for item in items %}
-  <div class="col-md-4 mb-3">
+  <div class="col-md-3 mb-3">
+    <!-- Item card -->
     <div class="card h-100">
       {% if item['image_path'] %}
-      <img src="{{ url_for('uploaded_file', filename=item['image_path']) }}" class="card-img-top"
-        style="height: 180px; object-fit: cover" />
+      <div class="bg-secondary-subtle d-flex align-items-center justify-content-center">
+        <!-- Image container -->
+        <img src="{{ url_for('uploaded_file', filename=item['image_path']) }}" class="img-fluid" alt="Item Image  "
+          style="height: 180px; object-fit: cover" />
+      </div>
       {% endif %}
+      <!-- Item details -->
       <div class="card-body d-flex flex-column">
         <h5 class="card-title">{{ item['title'] }}</h5>
         <p class="card-text text-truncate">{{ item['description'] }}</p>
         <p class="small text-muted">Status: {{ item['status'] }}</p>
         <div class="mt-auto">
           <!-- Edit an item -->
-          <a class="btn btn-outline-secondary btn-sm" href="{{ url_for('update', item_id=item['id']) }}">Update</a>
-          <a class="btn btn-outline-danger btn-sm" href="{{ url_for('delete', item_id=item['id']) }}">Delete</a>
+          <a class="btn btn-secondary btn-sm" href="{{ url_for('update', item_id=item['id']) }}">Edit</a>
+          <a class="btn btn-danger btn-sm" href="{{ url_for('delete', item_id=item['id']) }}">Delete</a>
         </div>
       </div>
     </div>
   </div>
   {% endfor %} {% else %}
   <div class="col-12">
+    <!-- No items message -->
     <p>
       You haven't posted any items yet.
-      <a href="{{ url_for('add_item') }}">Post one now</a>.
+      <a class="btn btn-secondary btn-sm" href="{{ url_for('add_item') }}">Post one now</a>.
     </p>
   </div>
   {% endif %}
@@ -43,23 +52,32 @@
 </div>
 
 <div class="row">
-  <h5 class="text-primary mb-3">My Requested Items</h5>
+  <!-- My Requested Items -->
+  <h2>My Request Items</h2>
+  <hr />
   {% if request_items %} {% for request_item in request_items %}
-  <div class="col-md-4 mb-3">
+  <!-- Requested item card -->
+  <div class="col-sm-3 mb-3">
     <div class="card h-100">
       {% if request_item['image_path'] %}
-      <img src="{{ url_for('uploaded_file', filename=request_item['image_path']) }}" class="card-img-top"
-        style="height: 180px; object-fit: cover" />
+      <!--- Requested item image -->
+
+      <div class="bg-secondary-subtle d-flex align-items-center justify-content-center">
+
+        <img src="{{ url_for('uploaded_file', filename=request_item['image_path']) }}" class="img-fluid"
+          alt="Requested Item Image" />
+      </div>
       {% endif %}
       <div class="card-body d-flex flex-column">
+        <!-- Requested item details -->
         <h5 class="card-title">{{ request_item['item_title'] }}</h5>
-        <p class="card-text text-truncate">{{ request_item['created_at'] }}</p>
+        <p class="card-text">Posted: {{ request_item['created_at'] }}</p>
         <p class="small text-muted">Status: {{ request_item['status'] }}</p>
         <div class="mt-auto">
           {% if request_item['status'] == "approved" %}
-          <a class="btn btn-outline-secondary btn-sm" href="#">View Contacts</a>
+          <a class="btn btn-secondary btn-sm" disable href="#">Contact Details</a>
           {%else%}
-          <a class="btn btn-outline-secondary btn-sm" href="#">Cancle Request</a>
+          <a class="btn btn-danger btn-sm" href="#">Cancle Request</a>
           {%endif%}
         </div>
       </div>
@@ -67,8 +85,9 @@
   </div>
   {% endfor %} {% else %}
   <div class="col-12">
+    <!-- No requested items message -->
     <p class="">You haven't requested any items yet.</p>
-    <a style="text-decoration: none" href="/">Search for items</a>
+    <a class="btn btn-secondary btn-sm" style="text-decoration: none" href="/">Search for items</a>
   </div>
   {% endif %}
 </div>

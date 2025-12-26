@@ -1,6 +1,6 @@
 {% extends "base.html" %} {% block content %}
 <h3>Admin Panel</h3>
-
+<!-- Users Table -->
 <h5 class="mt-3">Users</h5>
 <table class="table table-sm">
   <thead>
@@ -24,7 +24,7 @@
     {% endfor %}
   </tbody>
 </table>
-
+<!-- Items Table -->
 <h5 class="mt-4">Items</h5>
 <table class="table table-sm">
   <thead>
@@ -44,17 +44,14 @@
       <td>{{ it['owner_name'] }}</td>
       <td>{{ it['status'] }}</td>
       <td>
-        <a
-          class="btn btn-danger btn-sm"
-          href="{{ url_for('admin_delete_item', item_id=it['id']) }}"
-          >Delete</a
-        >
+        <!-- Delete button -->
+        <a class="btn btn-danger btn-sm" href="{{ url_for('admin_delete_item', item_id=it['id']) }}">Delete</a>
       </td>
     </tr>
     {% endfor %}
   </tbody>
 </table>
-
+<!-- Requests Table -->
 <h5 class="mt-4">Requests</h5>
 <table class="table table-sm">
   <thead>
@@ -74,16 +71,11 @@
       <td>{{ r['requester_name'] }}</td>
       <td>{{ r['status'] }}</td>
       <td>
-        <a
-          class="btn btn-success btn-sm"
-          href="{{ url_for('admin_update_request', req_id=r['id'], action='approved') }}"
-          >Approve</a
-        >
-        <a
-          class="btn btn-warning btn-sm"
-          href="{{ url_for('admin_update_request', req_id=r['id'], action='rejected') }}"
-          >Reject</a
-        >
+        <!-- Approve and Reject buttons -->
+        <a class="btn btn-success btn-sm"
+          href="{{ url_for('admin_update_request', req_id=r['id'], action='approved') }}">Approve</a>
+        <a class="btn btn-warning btn-sm"
+          href="{{ url_for('admin_update_request', req_id=r['id'], action='rejected') }}">Reject</a>
       </td>
     </tr>
     {% endfor %}

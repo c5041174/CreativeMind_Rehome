@@ -1,23 +1,30 @@
 {% extends "base.html" %} {% block content %}
+<!-- Item details -->
 <div class="card mb-3" style="max-width: 540px">
   <div class="row g-0">
     <div class="col-md-6">
       {% if item['image_path'] %}
-
-      <img src="{{ url_for('uploaded_file', filename=item['image_path']) }}" class="card-img-top"
-        style="height: 220px; object-fit: cover" />
-
+      <!-- Image container -->
+      <div class="bg-secondary-subtle d-flex align-items-center justify-content-center">
+        <img src="{{ url_for('uploaded_file', filename=item['image_path']) }}" class="card-img-top"
+          style="height: 220px; object-fit: cover" />
+      </div>
       {% else %}
+      <!-- No image -->
       <div class="bg-light p-5 text-center rounded">No image</div>
       {% endif %}
     </div>
+    <!-- Request Item Form -->
     <div class="col-md-6">
       <div class="card-body">
+        <!-- Request Item Form -->
         <h3>{{ item['title'] }}</h3>
         <p class="card-text">Category: {{ item['category']}}</p>
+        <!-- Condition -->
         <p class="card-text">
           <small class="text-body-secondary">Condition: {{ item['condition'] }}</small>
         </p>
+        <!-- Description -->
         <p class="card-text">{{ item['description'] }}</p>
         <p class="card-text">Owner: {{ item['owner_name'] }}</p>
         <p class="card-text">contact: {{ item['owner_email'] }}</p>
@@ -25,21 +32,27 @@
       </div>
       {% if session.get('user_id') and session.get('user_id') != item['user_id']
       %}
+      <!-- Request Item Form -->
       <form method="post" action="{{ url_for('request_item', item_id=item['id']) }}">
+
         <input type="hidden" name="csrf_token" value="{{ csrf_token }}" />
-        <div class="m-3">
-          <label class="form-label">Message to owner (optional)</label>
+        <div class="form-floating m-3">
+          <!-- Message to owner textarea -->
           <textarea class="form-control" name="message" rows="3"></textarea>
+          <label for="message">Message to owner (optional)</label>
         </div>
         <div class="d-flex">
-          <button class="btn btn-primary m-3">Request</button>
-          <a href="/" class="btn btn-primary m-3">Cancel</a>
+          <!-- Request button -->
+          <button class="btn btn-secondary m-3">Request</button>
+          <!-- Cancel button -->
+          <a href="/" class="btn btn-danger m-3">Cancel</a>
         </div>
       </form>
       {% elif not session.get('user_id') %}
       <p>
+        <!-- Login prompt -->
         Please
-        <a href="{{ url_for('login') }}">login</a> to request this item.
+        <a style="text-decoration: none;" href="{{ url_for('login') }}">login</a> to request this item.
       </p>
       {% else %}
       <p class="text-muted">This is your listing.</p>

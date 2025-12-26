@@ -1,21 +1,25 @@
 {% extends "base.html" %} {% block content %}
 <div class="row justify-content-center">
-  <div class="col-md-5">
-    <h3>Sign in</h3>
+  <!-- Login Form -->
+  <div class="d-grid col-md-5 mx-auto">
+    <h1>Sign In</h1>
+    <hr />
     <form method="post" novalidate>
+      <!-- CSRF Token -->
       <input type="hidden" name="csrf_token" value="{{ csrf_token }}" />
-      <div class="mb-2">
-        <label class="form-label">Email</label>
+      <div class="form-floating mb-2">
+        <!-- Email input -->
         <input class="form-control" name="email" type="email" required />
+        <label for="email">Email</label>
       </div>
-      <div class="mb-2">
-        <label class="form-label">Password</label>
+      <div class="form-floating mb-2">
+        <!-- Password input -->
         <input class="form-control" name="password" type="password" required />
+        <label for="password">Password</label>
       </div>
+      <!-- Login Form -->
       <button class="btn btn-success">Login</button>
-      <a class="btn btn-link" href="{{ url_for('register') }}"
-        >Create account</a
-      >
+      <a href="{{ url_for('register') }}" class="btn btn-primary">Register Here</a>
     </form>
   </div>
 </div>

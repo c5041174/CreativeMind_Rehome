@@ -14,23 +14,25 @@
 </head>
 
 <body>
+  <!-- Navigation bar -->
   <nav class="navbar navbar-expand-lg navbar-dark bg-secondary">
     <div class="container">
+      <!-- Brand -->
       <a class="navbar-brand d-flex align-items-center" href="{{ url_for('index') }}">
         <img src="{{ url_for('static', filename='logo.svg') }}" alt="" height="30" class="me-2" />
         <span>{{siteName}}</span>
       </a>
-
+      <!-- Navigation toggler -->
       <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#mainNav">
         <span class="navbar-toggler-icon"></span>
       </button>
-
+      <!-- Navigation menu -->
       <div class="collapse navbar-collapse" id="mainNav">
         <ul class="navbar-nav ms-auto">
           <li class="nav-item">
             <a class="nav-link" href="{{ url_for('index') }}">Home</a>
           </li>
-
+          <!-- Navigation menu items -->
           {% if session.get('user_id') %}
           <li class="nav-item">
             <a class="nav-link" href="{{ url_for('add_item') }}">Add Item</a>
@@ -38,18 +40,22 @@
           <li class="nav-item">
             <a class="nav-link" href="{{ url_for('dashboard') }}">Dashboard</a>
           </li>
+          <!-- Admin link -->
           {% if session.get('is_admin') %}
           <li class="nav-item">
             <a class="nav-link" href="{{ url_for('admin_panel') }}">Admin</a>
           </li>
           {% endif %}
+          <!-- Logout link -->
           <li class="nav-item">
             <a class="nav-link" href="{{ url_for('logout') }}">{{session.get("email")}} Logout</a>
           </li>
           {% else %}
+          <!-- Login and Register links -->
           <li class="nav-item">
             <a class="nav-link" href="{{ url_for('login') }}">Login</a>
           </li>
+
           <li class="nav-item">
             <a class="nav-link" href="{{ url_for('register') }}">Register</a>
           </li>
@@ -58,28 +64,34 @@
       </div>
     </div>
   </nav>
-
+  <!-- Main content container -->
   <div id="main-content" class="container mt-4">
+    <!-- Flash messages -->
     {% with messages = get_flashed_messages(with_categories=true) %} {% if
     messages %} {% for category, message in messages %}
+    <!-- Flash messages -->
     <div class="alert alert-{{ category }} alert-dismissible fade show" role="alert">
       {{ message }}
       <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
     </div>
     {% endfor %} {% endif %} {% endwith %}
+
     <div class="row">
+      <!-- Sidebar content -->
       <div class="col-sm-2">{% block sidebarContent %} {% endblock %}</div>
+      <!-- Main content -->
       <div class="col-sm-8">{% block content %}{% endblock %}</div>
       <div style="margin-top:120px ;" s class="col-sm-2">{% block sidebarContentupdate %}{% endblock %}</div>
     </div>
   </div>
-
+  <!-- Footer -->
   <footer class="mt-5 py-3 text-center text-secondary">
     <div class="container">© ReHome — Give items a new home</div>
   </footer>
   <script src="https://code.jquery.com/jquery-3.7.1.js" integrity="sha256-eKhayi8LEQwp4NKxN+CfCh+3qOVUtJn3QNZ0TciWLP4="
     crossorigin="anonymous"></script>
   <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+  <!-- Custom JavaScript -->
   <script type="module">
     import emailCheck from "{{ url_for('static', filename='js/email_check.js') }}";
     emailCheck();

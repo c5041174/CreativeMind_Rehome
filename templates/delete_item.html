@@ -1,10 +1,13 @@
 {% extends "base.html" %} {% block content %}
+<!-- Delete Item -->
 <div class="row justify-content-center">
     <div class="col-md-6">
         <h3>Delete Item</h3>
+        <!-- Delete confirmation -->
         <form method="post">
             <input type="hidden" name="csrf_token" value="{{ csrf_token }}" />
             <p>Are you sure you want to delete the item "{{ item['title'] }}"?</p>
+            <!-- Delete confirmation -->
             <div class="d-flex gap-2">
                 <button class="btn btn-danger" type="submit">Delete Item</button>
                 <a class="btn btn-secondary" href="{{ url_for('dashboard') }}">Cancel</a>
@@ -20,8 +23,10 @@
             {% if not item['image_path'] %}
             <p class="text-muted">No image available</p>
             {% else %}
-            <img src="{{ url_for('uploaded_file', filename=item['image_path']) }}" class="card-img-top"
-                alt="Image for {{ item['title'] }}">
+            <div class="bg-secondary-subtle d-flex align-items-center justify-content-center">
+                <img src="{{ url_for('uploaded_file', filename=item['image_path']) }}" class="card-img-top"
+                    alt="Image for {{ item['title'] }}">
+            </div>
             {% endif %}
         </div>
     </div>

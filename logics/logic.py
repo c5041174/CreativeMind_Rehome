@@ -220,6 +220,7 @@ def delete_item(item_id, DB_PATH):
 
 # Admin control panel data fetch
 def admin_control_panel(DB_PATH):
+    # Fetch all users, items, and requests
     conn = get_db(DB_PATH)
     users = conn.execute(
         "SELECT id, name, email, is_admin, created_at FROM users ORDER BY created_at DESC"
@@ -235,3 +236,15 @@ def admin_control_panel(DB_PATH):
     ).fetchall()
     conn.close()
     return users, items, requests
+
+
+# Cancel user requested items
+def cancle_user_requested_item(DB_PATH, item_id, requester_id):
+    conn = get_db(DB_PATH)
+    # Delete the request
+    conn.execute(
+        "DELETE FROM requests WHERE item_id = ? and requester_id = ?",
+        (item_id, requester_id),
+    )
+    conn.commit()
+    conn.close()

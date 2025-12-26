@@ -1,29 +1,29 @@
 {% extends "base.html" %} {% block content %}
+
+<!-- Add item form -->
 <div class="row justify-content-center">
   <div class="col-md-8">
     <h3>Give an item</h3>
-    <form method="post" enctype="multipart/form-data" novalidate>
+    <!-- Add item Form -->
+    <form method="post" enctype="multipart/form-data" novalidate class="row g-2">
+      <!-- item Title textinput -->
       <input type="hidden" name="csrf_token" value="{{ csrf_token }}" />
-      <div class="mb-2">
-        <label class="form-label">Title</label>
+      <div class="form-floating mb-2">
         <input class="form-control" name="title" required />
+        <label for="title">Title</label>
       </div>
+      <!-- item Description textinput -->
+      <div class="form-floating mb-2">
 
-      <div class="mb-2">
-        <label class="form-label">Description</label>
         <textarea class="form-control" name="description" rows="3"></textarea>
+        <label for="description">Description</label>
       </div>
 
-      <div class="row mb-2">
+      <div class="row mt-2">
         <div class="col">
-          <label class="form-label">Category</label>
-          <div>
-            <select
-              name="category"
-              class="form-select"
-              id="category"
-              aria-label="category select"
-            >
+          <div class="form-floating mb-2">
+            <!-- item Category select -->
+            <select name="category" class="form-select" id="category" aria-label="category select">
               <option value="">Select category</option>
               {% for category in categories.get("categories")%}
               <option value="{{category}}">{{category}}</option>
@@ -31,11 +31,13 @@
 
               <option value="Other">Other</option>
             </select>
+            <label for="category">Category</label>
           </div>
         </div>
         <div class="col">
-          <label class="form-label" for="condition">Condition</label>
-          <div>
+
+          <div class="form-floating mb-2">
+            <!-- item condition select -->
             <select name="condition" class="form-select" id="condition">
               <option value="">Select condition</option>
               {% for condition in conditions.conditions%}
@@ -43,32 +45,33 @@
               {%endfor%}
               <option value="Other">Other</option>
             </select>
+            <label for="condition">Condition</label>
           </div>
         </div>
       </div>
 
-      <div class="mb-2">
-        <label class="form-label">Location (optional)</label>
+      <div class="form-floating mb-2">
+        <!-- item Location input -->
         <input class="form-control" name="location" />
+        <label for="location">Location (optional)</label>
       </div>
-      <div class="mb-2">
-        <label for="Postalcode" class="form-label">Postalcode</label>
+      <div class="form-floating mb-2">
+        <!-- Postalcode input -->
         <input id="Postalcode" class="form-control" name="Postalcode" />
+        <label for="Postalcode">Postalcode</label>
       </div>
 
-      <div class="mb-3">
-        <label class="form-label">Upload image</label>
+      <div class="form-floating mb-2">
+        <!-- item Image file input -->
         <input class="form-control" type="file" name="image" accept="image/*" />
+        <label class="form-label">Upload image</label>
       </div>
-
-      <button class="btn btn-outline-secondary">Post item</button>
-      <a
-        class="btn btn-outline-danger"
-        href="{{ url_for('dashboard') }}"
-        role="button"
-        >Cancel</a
-      >
+      <!-- Add item Form -->
+      <div class="mt-3">
+        <button class="btn btn-success">Add Item</button>
+        <a class="btn btn-secondary" href="{{ url_for('index') }}">Cancel</a>
     </form>
   </div>
+
 </div>
 {% endblock %}
