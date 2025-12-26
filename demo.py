@@ -9,17 +9,15 @@ cursor = conn.cursor()
 
 # hashed = generate_password_hash("group")
 
-
-item = cursor.execute(
-    "delete FROM requests WHERE item_id = ? and requester_id = ?",
-    (
-        17,
-        10,
-    ),
+items = conn.execute(
+    "SELECT items.*, users.name, users.email  "
+    "FROM items JOIN users ON items.user_id = users.id "
+    "WHERE items.id = ?",
+    (15,),
 ).fetchone()
 
 
-print(item)
+print(items)
 
 conn.commit()
 conn.close()

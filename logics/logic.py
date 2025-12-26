@@ -2,6 +2,9 @@ import re
 import sqlite3
 from flask import *
 from functools import wraps
+import os
+
+from app import update_password
 
 # from db.init_db import DB_PATH
 
@@ -62,7 +65,7 @@ def register_user(name, email, hashed, conn):
 
 
 # Fetch all available items with optional search or category filter
-def get_all_items(DB_PATH, selectitem=None):
+def get_all_items(DB_PATH, selectitem):
     items = selectitem
     conn = get_db(DB_PATH)
     if request.method == "POST":
@@ -104,12 +107,22 @@ def get_all_items(DB_PATH, selectitem=None):
     return items
 
 
+# Update user password
+def update_password(email, new_hashed_password, DB_PATH):
+    conn = get_db(DB_PATH)
+    conn.execute(
+        "UPDATE users SET password = ? WHERE email = ?", (new_hashed_password, email)
+    )
+    conn.commit()
+    conn.close()
+
+
 # get an item by its ID with owner details
 def get_item_by_id(item_id, DB_PATH):
 
     conn = get_db(DB_PATH)
     item = conn.execute(
-        "SELECT items.*, users.name AS owner_name, users.email AS owner_email "
+        "SELECT items.*, users.name as owner_name, users.email as owner_email"
         "FROM items JOIN users ON items.user_id = users.id "
         "WHERE items.id = ?",
         (item_id,),
@@ -126,7 +139,7 @@ def get_user_dashboard_items(DB_PATH):
         (session["user_id"],),
     ).fetchall()
     request_items = conn.execute(
-        "SELECT requests.id, requests.status, requests.message, requests.created_at, items.title as item_title, u.name as requester_name, u.id, items.image_path "
+        "SELECT requests.id, requests.status, requests.message, requests.created_at,items.id as item_id, items.title as item_title, u.name as requester_name, u.id, items.image_path "
         "FROM requests JOIN items ON requests.item_id = items.id JOIN users u ON requests.requester_id = u.id "
         "where u.id = ? "
         "ORDER BY requests.created_at DESC",
@@ -220,7 +233,6 @@ def delete_item(item_id, DB_PATH):
 
 # Admin control panel data fetch
 def admin_control_panel(DB_PATH):
-    # Fetch all users, items, and requests
     conn = get_db(DB_PATH)
     users = conn.execute(
         "SELECT id, name, email, is_admin, created_at FROM users ORDER BY created_at DESC"
@@ -238,13 +250,31 @@ def admin_control_panel(DB_PATH):
     return users, items, requests
 
 
-# Cancel user requested items
 def cancle_user_requested_item(DB_PATH, item_id, requester_id):
     conn = get_db(DB_PATH)
-    # Delete the request
     conn.execute(
         "DELETE FROM requests WHERE item_id = ? and requester_id = ?",
         (item_id, requester_id),
     )
     conn.commit()
     conn.close()
+
+
+def deleteitem(item_id, DB_PATH, UPLOAD_FOLDER):
+
+    conn = get_db(DB_PATH)
+    # optionally remove image file
+    item = conn.execute(
+        "SELECT image_path FROM items WHERE id = ?", (item_id,)
+    ).fetchone()
+    # delete item record
+    if item and item["image_path"]:
+        try:
+
+            os.remove(os.path.join(UPLOAD_FOLDER, item["image_path"]))
+        except Exception:
+            pass
+    delete_item(item_id, DB_PATH)
+    conn.commit()
+    conn.close()
+    flash("Item deleted.", "info")

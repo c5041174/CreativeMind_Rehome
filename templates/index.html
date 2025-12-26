@@ -38,8 +38,8 @@
   </div>
   <div>
     <!---->
-    <a class="btn btn-outline-secondary me-2 mb-2" href="{{ url_for('index') }}">Refresh</a>
-    <a class="btn btn-outline-secondary mb-2" href="{{ url_for('add_item') }}">Give an item</a>
+    <a class="btn btn-warning me-2 mb-2" href="{{ url_for('index') }}">Refresh</a>
+    <a class="btn btn-secondary mb-2" href="{{ url_for('add_item') }}">Give an item</a>
   </div>
 </div>
 <!-- Carousel -->
@@ -76,10 +76,10 @@
         </p>
         <div class="d-flex gap-2">
           <!-- View button -->
-          <a href="{{ url_for('item_detail', item_id=item['id']) }}" class="btn btn-outline-success btn-sm">View</a>
+          <a href="{{ url_for('item_detail', item_id=item['id']) }}" class="btn btn-success btn-sm">View</a>
           {% if session.get('user_id') and session.get('user_id') ==
           item['user_id'] %}
-          <span class="badge bg-secondary align-self-center">Your listing</span>
+          <span class="badge bg-secondary align-self-center text-warning">Your listing</span>
           {% endif %}
         </div>
       </div>

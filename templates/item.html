@@ -1,5 +1,7 @@
 {% extends "base.html" %} {% block content %}
 <!-- Item details -->
+<h1>Item Details</h1>
+<hr />
 <div class="card mb-3" style="max-width: 540px">
   <div class="row g-0">
     <div class="col-md-6">
@@ -26,7 +28,7 @@
         </p>
         <!-- Description -->
         <p class="card-text">{{ item['description'] }}</p>
-        <p class="card-text">Owner: {{ item['owner_name'] }}</p>
+        <p class="card-text text-muted">Owner: {{ item['owner_name'] }}</p>
         <p class="card-text">contact: {{ item['owner_email'] }}</p>
         <p class="card-text">location: {{ item['location'] }}</p>
       </div>
@@ -55,7 +57,7 @@
         <a style="text-decoration: none;" href="{{ url_for('login') }}">login</a> to request this item.
       </p>
       {% else %}
-      <p class="text-muted">This is your listing.</p>
+      <p class="text-warning p-2">This is your listing.</p>
       {% endif %}
     </div>
   </div>

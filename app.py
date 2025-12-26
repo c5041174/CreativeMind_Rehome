@@ -96,6 +96,7 @@ def inject_csrf_token():
 #     return conn
 
 
+# API route to check email uniqueness
 @app.route("/api/email/")
 def email():
     error = None
@@ -326,21 +327,7 @@ def admin_panel():
 def admin_delete_item(item_id):
     if not session.get("is_admin"):
         abort(403)
-    conn = get_db(DB_PATH)
-    # optionally remove image file
-    item = conn.execute(
-        "SELECT image_path FROM items WHERE id = ?", (item_id,)
-    ).fetchone()
-    # delete item record
-    if item and item["image_path"]:
-        try:
-            os.remove(os.path.join(UPLOAD_FOLDER, item["image_path"]))
-        except Exception:
-            pass
-    conn.execute("DELETE FROM items WHERE id = ?", (item_id,))
-    conn.commit()
-    conn.close()
-    flash("Item deleted.", "info")
+    deleteitem(item_id, DB_PATH, UPLOAD_FOLDER)
     # Redirect to admin panel
     return redirect(url_for("admin_panel"))
 
@@ -482,37 +469,93 @@ def update(item_id):
     )
 
 
-# Delete an item
 @app.route("/delete/<int:item_id>", methods=("GET", "POST"))
 @login_required
 def delete(item_id):
 
-    # Get the item
+    # Get item data
     item = get_item_by_id(item_id, DB_PATH)
     # Check for errors
-
     error = None
     if request.method == "POST":
         if item is None:  # If item not found, add error message
             error = "Item not found!"
             flash(category="warning", message=error)
-        elif item["user_id"] != session.get(
+        if item["user_id"] != session.get(
             "user_id"
         ):  # Check user is only accessing their own items
-            error = "You do not have permission to delete this item ."
+            error = f"You do not have permission to delete this item {session.get('user_id')} ."
             flash(category="danger", message=error)
 
-        # If there was an error, redirect to films list
+        # If there was an error, redirect to items list
         if error:
             return redirect(url_for("dashboard"))
 
         # Use the database function to delete the item
-        delete_item(item_id, DB_PATH)
+        deleteitem(item_id, DB_PATH, UPLOAD_FOLDER)
 
-        # Flash a success message and redirect to the index page
-        flash(category="success", message="Item deleted successfully!")
         return redirect(url_for("dashboard"))
     return render_template("delete_item.html", item=item)
+
+
+# Cancel an item
+@app.route("/cancel/<int:item_id>", methods=("GET", "POST"))
+@login_required
+def cancel(item_id):
+
+    item = get_item_by_id(item_id, DB_PATH)
+
+    # Check for errors
+    error = None
+    if request.method == "POST":
+        if item is None:  # If requested item not found, add error message
+            error = "requested Item not found!"
+            flash(category="warning", message=error)
+        elif item["user_id"] == session.get(
+            "user_id"
+        ):  # Check user is only accessing their own items
+            error = "You do not have permission to cancel this requested item."
+            flash(category="danger", message=error)
+
+        # If there was an error, redirect to items list
+        if error:
+            return redirect(url_for("dashboard"))
+
+        cancle_user_requested_item(DB_PATH, item_id, session.get("user_id"))
+
+        # Flash a success message and redirect to the index page
+        flash(category="success", message="requested Item canceled successfully!")
+        return redirect(url_for("dashboard"))
+    return render_template("cancel_item.html", item=item)
+
+
+@app.route("/update_password", methods=["GET", "POST"])
+def update_password():
+    if request.method == "POST":
+        email = request.form.get("email")
+        new_password = request.form.get("new_password")
+        confirm_password = request.form.get("confirm_password")
+
+        if not email or not new_password or not confirm_password:
+            flash(category="danger", message="All fields are required.")
+            return redirect(url_for("update_password"))
+
+        if new_password != confirm_password:
+            flash(category="danger", message="Passwords do not match.")
+            return redirect(url_for("update_password"))
+
+        user = get_user_by_email(email, DB_PATH)
+        if not user:
+            flash(category="danger", message="User not found.")
+            return redirect(url_for("update_password"))
+
+        hashed_new_password = generate_password_hash(new_password)
+        update_password(email, hashed_new_password, DB_PATH)
+
+        flash(category="success", message="Password updated successfully!")
+        return redirect(url_for("login"))
+
+    return render_template("update_password.html")
 
 
 # --------------------

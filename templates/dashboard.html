@@ -75,9 +75,10 @@
         <p class="small text-muted">Status: {{ request_item['status'] }}</p>
         <div class="mt-auto">
           {% if request_item['status'] == "approved" %}
-          <a class="btn btn-secondary btn-sm" disable href="#">Contact Details</a>
+          <a class="btn btn-secondary btn-sm " href="#">Contact Details</a>
           {%else%}
-          <a class="btn btn-danger btn-sm" href="#">Cancle Request</a>
+          <a class="btn btn-danger btn-sm" href="{{ url_for('cancel', item_id=request_item['item_id']) }}">Cancle
+            Request</a>
           {%endif%}
         </div>
       </div>
