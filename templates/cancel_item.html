@@ -1,0 +1,33 @@
+{% extends "base.html" %} {% block content %}
+<!-- cancel requested Item -->
+<div class="row justify-content-center">
+    <div class="col-md-6">
+        <h3>Cancel Requested Item</h3>
+        <!-- cancel confirmation -->
+        <form method="post" enctype="multipart/form-data">
+            <input type="hidden" name="csrf_token" value="{{ csrf_token }}" />
+            <p>Are you sure you want to cancel the requested item "{{ item['title'] }}"?</p>
+            <!-- cancel confirmation -->
+            <div class="d-flex gap-2">
+                <button class="btn btn-danger" type="submit">cancel request</button>
+                <a class="btn btn-secondary" href="{{ url_for('dashboard') }}">back</a>
+            </div>
+        </form>
+    </div>
+    {% endblock %}
+    {% block sidebarContent %}
+    <!-- item Image -->
+    <div class="card mt-3">
+        <div class="card-body text-center">
+            <h5 class="card-title">Item Image</h5>
+            {% if not item['image_path'] %}
+            <p class="text-muted">No image available</p>
+            {% else %}
+            <div class="bg-secondary-subtle d-flex align-items-center justify-content-center">
+                <img src="{{ url_for('uploaded_file', filename=item['image_path']) }}" class="card-img-top"
+                    alt="Image for {{ item['title'] }}">
+            </div>
+            {% endif %}
+        </div>
+    </div>
+    {% endblock %}
