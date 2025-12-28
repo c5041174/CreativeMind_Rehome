@@ -4,7 +4,7 @@ from flask import *
 from functools import wraps
 import os
 
-from app import update_password
+# from app import update_password
 
 # from db.init_db import DB_PATH
 
@@ -64,51 +64,21 @@ def register_user(name, email, hashed, conn):
     conn.commit()
 
 
-# Fetch all available items with optional search or category filter
-def get_all_items(DB_PATH, selectitem):
-    items = selectitem
+# Fetch all available items
+def select_all_items(DB_PATH):
     conn = get_db(DB_PATH)
-    if request.method == "POST":
-        Search = request.form.get("search", "").strip().lower()
-        if not Search:
-            items = conn.execute(
-                "SELECT items.*, users.name AS owner_name "
-                "FROM items JOIN users ON items.user_id = users.id "
-                "WHERE items.status = 'available' "
-                "ORDER BY items.created_at DESC"
-            ).fetchall()
-        else:
-            items = conn.execute(
-                "SELECT items.*, users.name AS owner_name "
-                "FROM items JOIN users ON items.user_id = users.id "
-                "WHERE category like ? "
-                "ORDER BY items.created_at DESC",
-                ("{}%".format(Search),),
-            ).fetchall()
-    else:
-        if not items:
-            items = conn.execute(
-                "SELECT items.*, users.name AS owner_name "
-                "FROM items JOIN users ON items.user_id = users.id "
-                "WHERE items.status = 'available' "
-                "ORDER BY items.created_at DESC"
-            ).fetchall()
-
-        else:
-            items = conn.execute(
-                "SELECT items.*, users.name AS owner_name "
-                "FROM items JOIN users ON items.user_id = users.id "
-                "WHERE category = ? "
-                "ORDER BY items.created_at DESC",
-                (selectitem,),
-            ).fetchall()
-    conn.commit()
+    items = conn.execute(
+        "SELECT items.*, users.name AS owner_name "
+        "FROM items JOIN users ON items.user_id = users.id "
+        "WHERE items.status = 'available' "
+        "ORDER BY items.created_at DESC"
+    ).fetchall()
     conn.close()
     return items
 
 
 # Update user password
-def update_password(email, new_hashed_password, DB_PATH):
+def update_new_password(new_hashed_password, email, DB_PATH):
     conn = get_db(DB_PATH)
     conn.execute(
         "UPDATE users SET password = ? WHERE email = ?", (new_hashed_password, email)
@@ -117,12 +87,11 @@ def update_password(email, new_hashed_password, DB_PATH):
     conn.close()
 
 
-# get an item by its ID with owner details
+# Fetch item by its ID
 def get_item_by_id(item_id, DB_PATH):
-
     conn = get_db(DB_PATH)
     item = conn.execute(
-        "SELECT items.*, users.name as owner_name, users.email as owner_email"
+        "SELECT items.*, users.name AS owner_name, users.email AS owner_email "
         "FROM items JOIN users ON items.user_id = users.id "
         "WHERE items.id = ?",
         (item_id,),
@@ -191,14 +160,6 @@ def get_user_by_email(email, DB_PATH):
     user = conn.execute("SELECT * FROM users WHERE email = ?", (email,)).fetchone()
     conn.close()
     return user
-
-
-# Get an item by its ID
-def get_item_by_id(item_id, DB_PATH):
-    conn = get_db(DB_PATH)
-    item = conn.execute("SELECT * FROM items WHERE id = ?", (item_id,)).fetchone()
-    conn.close()
-    return item
 
 
 # Update an item by its ID

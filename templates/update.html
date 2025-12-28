@@ -1,7 +1,8 @@
 {% extends "base.html" %} {% block content %}
 <div class="row justify-content-center">
     <div class="col-md-8">
-        <h3>Update an item</h3>
+        <h1>Update an item</h1>
+        <hr />
         <form method="post" enctype="multipart/form-data" novalidate>
             <input type="hidden" name="csrf_token" value="{{ csrf_token }}" />
             <div class="mb-2">
@@ -62,8 +63,8 @@
                     value="{{ item['image_path'] }}" />
             </div>
 
-            <button class="btn btn-outline-secondary">Update Item</button>
-            <a class="btn btn-outline-danger" href="{{ url_for('dashboard') }}" role="button">Cancel</a>
+            <button class="btn btn-success">Update Item</button>
+            <a class="btn btn-warning" href="{{ url_for('dashboard') }}" role="button">Cancel</a>
         </form>
     </div>
 </div>

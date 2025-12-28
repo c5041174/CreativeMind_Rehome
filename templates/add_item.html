@@ -3,7 +3,9 @@
 <!-- Add item form -->
 <div class="row justify-content-center">
   <div class="col-md-8">
-    <h3>Give an item</h3>
+    <h1>Give an item</h1>
+    <hr />
+
     <!-- Add item Form -->
     <form method="post" enctype="multipart/form-data" novalidate class="row g-2">
       <!-- item Title textinput -->
@@ -69,7 +71,7 @@
       <!-- Add item Form -->
       <div class="mt-3">
         <button class="btn btn-success">Add Item</button>
-        <a class="btn btn-secondary" href="{{ url_for('index') }}">Cancel</a>
+        <a class="btn btn-warning" href="{{ url_for('index') }}">Cancel</a>
     </form>
   </div>
 

@@ -39,7 +39,7 @@ from flask_wtf import CSRFProtect
 from flask_wtf.csrf import generate_csrf
 from flask_cors import CORS
 
-error = None
+# error = None
 
 # --------------------
 # Configuration
@@ -87,15 +87,6 @@ def inject_csrf_token():
     return dict(csrf_token=generate_csrf())
 
 
-# def get_db():
-#     """Return a sqlite3 connection with row factory as dict-like access."""
-#     conn = sqlite3.connect(DB_PATH)
-#     conn.row_factory = sqlite3.Row
-#     # enable foreign keys
-#     conn.execute("PRAGMA foreign_keys = ON;")
-#     return conn
-
-
 # API route to check email uniqueness
 @app.route("/api/email/")
 def email():
@@ -126,13 +117,38 @@ def allowed_file(filename):
 @app.route("/")
 @app.route("/<selectitem>")
 def index(selectitem=None):
-    """Homepage: list available items."""
+    # Homepage - list available items with optional search/category filter
 
-    items = get_all_items(DB_PATH, selectitem)
+    conn = get_db(DB_PATH)
+    items = select_all_items(DB_PATH)
+    if request.method == "POST":
+        search = request.form.get("search", "").strip().lower()
+        if not search:
+            items = select_all_items(DB_PATH)
+        else:
+            items = conn.execute(
+                "SELECT items.*, users.name AS owner_name "
+                "FROM items JOIN users ON items.user_id = users.id "
+                "WHERE category like ? "
+                "ORDER BY items.created_at DESC",
+                ("{}%".format(search),),
+            ).fetchall()
+    else:
+        if not selectitem:
+            items = select_all_items(DB_PATH)
+        else:
+            # Filter by category
+            items = conn.execute(
+                "SELECT items.*, users.name AS owner_name "
+                "FROM items JOIN users ON items.user_id = users.id "
+                "WHERE category = ? AND status = 'available' "
+                "ORDER BY created_at DESC",
+                (selectitem,),
+            ).fetchall()
+
+    conn.close()
+
     return render_template("index.html", categories=categories, items=items)
-
-
-# ---------- Authentication ----------
 
 
 # Registration
@@ -174,11 +190,11 @@ def register():
     return render_template("register.html")
 
 
-# ---------- Login/Logout ----------
+# Login
 @app.route("/login", methods=["GET", "POST"])
 def login():
     # User login
-    next_page = request.args.get("next") or url_for("dashboard")
+    next_page = request.args.get("next") or url_for("index")
     if request.method == "POST":
         # Process login form
         email = request.form.get("email", "").strip().lower()
@@ -268,6 +284,7 @@ def add_item():
 def item_detail(item_id):
     # Item detail page
     item = get_item_by_id(item_id, DB_PATH)
+    # Check if item exists
     if not item:
         abort(404)
     return render_template("item.html", item=item)
@@ -363,8 +380,9 @@ def admin_update_request(req_id, action):
 
 
 # ---------- Static uploads route ----------
+
+
 @app.route("/uploads/<path:filename>")
-@login_required
 def uploaded_file(filename):
     return send_from_directory(UPLOAD_FOLDER, filename)
 
@@ -531,11 +549,12 @@ def cancel(item_id):
 
 @app.route("/update_password", methods=["GET", "POST"])
 def update_password():
+    # Update user password
     if request.method == "POST":
         email = request.form.get("email")
         new_password = request.form.get("new_password")
         confirm_password = request.form.get("confirm_password")
-
+        # Validate input
         if not email or not new_password or not confirm_password:
             flash(category="danger", message="All fields are required.")
             return redirect(url_for("update_password"))
@@ -550,7 +569,7 @@ def update_password():
             return redirect(url_for("update_password"))
 
         hashed_new_password = generate_password_hash(new_password)
-        update_password(email, hashed_new_password, DB_PATH)
+        update_new_password(hashed_new_password, email, DB_PATH)
 
         flash(category="success", message="Password updated successfully!")
         return redirect(url_for("login"))

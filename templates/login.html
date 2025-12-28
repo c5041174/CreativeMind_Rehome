@@ -18,9 +18,11 @@
         <label for="password">Password</label>
       </div>
       <!-- Login Form -->
-      <button class="btn btn-success">Login</button>
-      <a href="{{ url_for('register') }}" class="btn btn-primary">Register Here</a>
-      <a href="{{ url_for('update_password') }}" class="text-decoration-none">Forgot Password?</a>
+      <div class="d-flex justify-content-between align-items-center">
+        <button class="btn btn-success">Login</button>
+        <a href="{{ url_for('register') }}" class="btn btn-primary">Register Here</a>
+        <a href="{{ url_for('update_password') }}" class="text-decoration-none text-muted">Forgot Password?</a>
+      </div>
     </form>
   </div>
 </div>

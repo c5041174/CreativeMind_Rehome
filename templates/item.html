@@ -27,10 +27,10 @@
           <small class="text-body-secondary">Condition: {{ item['condition'] }}</small>
         </p>
         <!-- Description -->
-        <p class="card-text">{{ item['description'] }}</p>
+        <p class="card-text text-muted">Description: {{ item['description'] }}</p>
         <p class="card-text text-muted">Owner: {{ item['owner_name'] }}</p>
-        <p class="card-text">contact: {{ item['owner_email'] }}</p>
-        <p class="card-text">location: {{ item['location'] }}</p>
+        <p class="card-text text-muted">contact: {{ item['owner_email'] }}</p>
+        <p class="card-text text-muted">location: {{ item['location'] }}</p>
       </div>
       {% if session.get('user_id') and session.get('user_id') != item['user_id']
       %}
