@@ -11,14 +11,14 @@ class TestUserFunctions(unittest.TestCase):
 
     def test_get_user_by_email(self):
         # Test fetching a user by email
-        email = "tayo@yahoo.com"
+        email = "gift@gmail.com"
         user = get_user_by_email(email, DB_PATH)
         self.assertIsNotNone(user)
         self.assertEqual(user["email"], email)
 
     def test_update_user_password(self):
         # Test updating user password
-        email = "tayo@yahoo.com"
+        email = "gift@gmail.com"
         new_password = "new_secure_password"
         update_new_password(new_password, email, DB_PATH)
         user = get_user_by_email(email, DB_PATH)
