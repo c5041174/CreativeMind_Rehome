@@ -1,0 +1,5 @@
+FLASK
+FLASK-WTF
+FLASK-CORS
+gunicorn
+Werkzeug==2.0.3
