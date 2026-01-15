@@ -1,9 +1,11 @@
-import re
+# import re
 import sqlite3
 from flask import *
 from functools import wraps
 import os
 
+<<<<<<< HEAD
+=======
 #<<<<<<< HEAD
 # from app import update_password
 #=======
@@ -11,6 +13,7 @@ import os
 #>>>>>>> 464c9b4f913512e6a7b1a1b81c3cb624c0ba1b0f
 
 # from db.init_db import DB_PATH
+>>>>>>> ceaa4efc83251393d42e0bc10943d7b064361b1d
 
 # list of item conditions
 conditions = {
